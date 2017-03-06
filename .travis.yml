@@ -1,0 +1,20 @@
+sudo: required
+language: go
+addons:
+  ssh_known_hosts: 52.221.244.175
+services:
+- docker
+before_script:
+- openssl aes-256-cbc -pass "pass:$TRAVIS_CI_SECRET" -in ./.secret -out ./ecs.pem
+  -d -a
+- eval "$(ssh-agent -s)"
+- chmod 400 ecs.pem
+- ssh-add ecs.pem
+before_install:
+- docker build -t gdury/cinema-showtimes:$TRAVIS_BUILD_NUMBER .
+after_success:
+- if [ "$TRAVIS_BRANCH" == "master" ]; then docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+  docker push gdury/cinema-showtimes:$TRAVIS_BUILD_NUMBER; fi
+env:
+  global:
+    secure: lA314VXI24m1VhrQWOqAeVzUTvApDOZXM6fTc3sDRsDoJxUGOAx9ccvvnMJNDipr2ZRD3dwQ2VIm9VGlq7amiTvvs6SRZUwXHL3C0Xx7wHj+4N5fNJN5LEjBGwO86orScGdChYcVenwWs+qI3S6n5r4TuYIUTZhkIsk1zG82UD0AMqZf5RxKgQV/+aBH38TZ6ocyIlgFnf6S4UDT9pwTHpINse571OWsGHpZgMgSH2qxdA6aMWr6cAvATfImj+/0XXXtugOlLE0UEFHPrNS81XHvgsXdWmJVtzk+vfCb9Pr7gVuH/nmdrKIbRbUCmj8uV8ob8x1MCJDDbs4ByhZwiQP7Z3Bi5NC1RpE0olEWZjApp7d0gq1LE8W+Gb0CFpVbWWL0XYuJAdzFoxnfRgDA1I43cpVYhpWM8gR1tUSA5TD6pfHoHmUpeiWkY60LFW9wXXFcG6+5CJ4a6WqqLtnmZUSCTYVhe0Br/oLKR1ch+q9jDafw4FhKULlpzHyv7dvrASjxA+PvPHuSYg9m6DXDWY8DgK0bIBXZK5oQJeCDC92mVIZHsINNQJufthNQtpP4RoEYRr0iY7OLJlXJmSs7Zw84W3sG4xoZEnBHrFp7st7ws7l3WnplFWZoHBE6pU2DUdzZw3v6O4muz5R5McVSgsPeZfvylNvnGsLBRWEAKYU=
